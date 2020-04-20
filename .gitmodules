@@ -1,0 +1,3 @@
+[submodule "2_HigherDimensionVisualization/imagen"]
+	path = 2_HigherDimensionVisualization/imagen
+	url = git@github.com:ajschumacher/imagen.git

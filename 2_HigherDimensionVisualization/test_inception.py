@@ -39,8 +39,8 @@ def crop(image):
 
 
 def get_imagenet_images():
-    filelist = os.listdir("../../imagen/imagen/")
-    filelist = [os.path.join("/home/eric/github/imagen/imagen/",x) for x in filelist]
+    filelist = os.listdir("imagen/imagen/")
+    filelist = [os.path.join("imagen/imagen/",x) for x in filelist]
     img_list = []
     for filename in filelist:
         img_list.append([cv2.imread(filename),filename])
