@@ -1,9 +1,15 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
+import torch.optim as optim
+import basic_net 
+from torchsummary import summary 
+import torch.nn as nn
+from focal_loss import FocalLoss
+
 transform = transforms.Compose(
     [transforms.RandomHorizontalFlip(),
-     transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
+     transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
      transforms.RandomRotation(degrees=10),
      transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
@@ -14,7 +20,7 @@ test_transform = transforms.Compose(
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                         download=True, transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=32,
-                                          shuffle=True, num_workers=4)
+                                          shuffle=True, num_workers=6)
 
 testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                        download=True, transform=test_transform)
@@ -23,65 +29,18 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=4,
 
 classes = ('plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-import matplotlib.pyplot as plt
-import numpy as np
-
-# functions to show an image
-
-
-def imshow(img):
-    img = img / 2 + 0.5     # unnormalize
-    npimg = img.numpy()
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show()
 
 
 
-import torch.nn as nn
-import torch.nn.functional as F
-
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(3, 10, 3)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(10, 30, 3)
-        self.conv3 = nn.Conv2d(30,60,3)
-
-        self.fc1 = nn.Linear(60 * 2 * 2, 60)
-        self.fc2 = nn.Linear(60, 60)
-        self.fc3 = nn.Linear(60, 10)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = self.pool(F.relu(self.conv3(x)))
-        #print(x.shape)
-        x = x.view(-1,60 * 2 * 2)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
-
-import basic_net 
 net= basic_net.SmallNet()
-#net= Net() 
-dataiter = iter(testloader)
-images, labels = dataiter.next()
-print(images.shape)
-output = net(images)
-print(output.shape)
-#exit(0)
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device,"device")
-import torch.optim as optim
 
-criterion = nn.CrossEntropyLoss()
-#optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+#criterion = nn.CrossEntropyLoss()
+criterion = FocalLoss(gamma=2) 
 optimizer = optim.AdamW(net.parameters(), lr=1e-3,weight_decay=0.001) 
 net.to(device)
-from torchsummary import summary 
 summary(net,(3,32,32))
 
 for epoch in range(250):  # loop over the dataset multiple times
@@ -152,7 +111,6 @@ dataiter = iter(testloader)
 images, labels = dataiter.next()
 
 # print images
-#imshow(torchvision.utils.make_grid(images))
 print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
 net= basic_net.SmallNet()

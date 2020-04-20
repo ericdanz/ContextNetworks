@@ -11,18 +11,13 @@ class BasicBlock(nn.Module):
         self._same_feature_depth = (in_features == out_features)
         if stride != 1:
             self.conv0 = nn.Conv2d(in_features,in_features,kernel_size=3,stride=stride,groups=in_features,bias=False)
-            torch.nn.init.orthogonal_(self.conv0.weight,gain=1.4)
             self.bn0 = nn.BatchNorm2d(in_features)
         self.conv1 = nn.Conv2d(in_features,out_features*3,kernel_size=1)
-        torch.nn.init.orthogonal_(self.conv1.weight,gain=1.4)
         #self.bn1 = nn.BatchNorm2d(out_features)
         self.conv2 = nn.Conv2d(out_features*3,out_features*3,kernel_size=mid_kernel_size,groups=out_features*3,padding=mid_kernel_size//2,bias=False)
-        torch.nn.init.orthogonal_(self.conv2.weight,gain=1.4)
         self.bn2 = nn.BatchNorm2d(out_features*3)
         self.conv3 = nn.Conv2d(out_features*3,out_features,kernel_size=1,bias=False)
-        torch.nn.init.orthogonal_(self.conv3.weight,gain=1.4)
         self.bn3 = nn.BatchNorm2d(out_features)
-
     def forward(self,x):
         y = x
         if self._stride != 1:
@@ -42,7 +37,7 @@ class BasicBlock(nn.Module):
 
 
 class SmallNet(nn.Module):
-    def __init__(self,num_blocks=3,num_layers_per_block=4,first_feature_size=16):
+    def __init__(self,num_blocks=3,num_layers_per_block=4,first_feature_size=40):
         super().__init__()
         layers = [nn.Conv2d(3,first_feature_size,kernel_size=3,padding=1,bias=False)]
         layers += [nn.BatchNorm2d(first_feature_size)]
